@@ -1,0 +1,49 @@
+# B
+EAR_CLOSED_RATIO: 0.45        # ear_ratio < 该值判闭眼
+EAR_HALF_RATIO: 0.70          # ear_ratio < 该值判半睁（否则睁眼）
+
+SLEEPY_TIME: 2.0              # 连续闭眼超过该秒数判打瞌睡
+
+YAW_THRESHOLD: 30.0           # |yaw_angle| 超过该角度判偏头/分心
+
+PITCH_DOWN_THRESHOLD: 12.0    # 低头阈值（度）
+PITCH_UP_THRESHOLD: 12.0      # 抬头阈值（度）
+
+PITCH_DOWN_SIGN: 1            # pitch方向统一：确保“低头为正”（不对就改-1）
+
+WINDOW_TIME: 1.2              # 统计/平滑时间窗口长度（秒）
+
+POSE_HOLD_TIME: 0.4           # 偏头/低头/抬头持续超过该秒数才触发（防闪）
+
+ATTN_BAD_THRESHOLD: 60        # UI标红阈值（attention_score低于它标红）
+
+FOCAL_SCALE: 1.2              # 相机焦距缩放（影响姿态角度幅度）
+
+MIN_EYE_DIST: 25.0            # 眼角距离过小（脸太远）则不更新姿态
+
+REPROJ_ERR_MAX: 20.0          # 重投影误差上限（超过则丢弃该帧姿态）
+
+MAX_POSE_JUMP: 12.0           # 单帧yaw/pitch最大跳变限制（防爆点）
+
+BLINK_MIN_SEC: 0.20           # 短眨眼阈值（小于它不计入PERCLOS）
+
+SCORE_EMA_ALPHA: 0.25         # 注意力分数EMA平滑系数（大更灵敏，小更稳定）
+
+W_EYE: 0.55                   # PERCLOS(疲劳)扣分权重
+W_AWAY: 0.20                  # 偏头窗口比例扣分权重
+W_DOWN: 0.15                  # 低头窗口比例扣分权重
+W_UP: 0.05                    # 抬头窗口比例扣分权重
+W_NOFACE: 0.25                # no_face窗口比例扣分权重
+W_UNSTB: 0.05                 # 姿态不稳定(抖动)扣分权重
+
+YAW_STD_NORM: 8.0             # yaw标准差归一化尺度（越小越容易判不稳）
+PITCH_STD_NORM: 10.0          # pitch标准差归一化尺度（越小越容易判不稳）
+
+CALIB_REPROJ_ERR_MAX: 20.0    # 校准阶段重投影误差上限（更严格防污染）
+
+NOFACE_GRACE_SEC: 0.4         # no_face宽限时间（短遮挡不立刻计入/触发）
+
+GAZE_X_THRESHOLD: 0.55        # gaze_x偏离阈值（左右）
+GAZE_Y_THRESHOLD: 0.65        # gaze_y偏离阈值（上下）
+GAZE_HOLD_TIME: 0.50          # gaze_off持续超过该秒数才触发（防闪）
+W_GAZE: 0.08                  # gaze窗口比例扣分权重
