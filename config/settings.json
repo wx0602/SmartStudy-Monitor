@@ -1,0 +1,11 @@
+{
+    "camera": {
+        "camera_id": 0
+    },
+    "modules": {
+        "behavior": true
+    },
+    "output": {
+        "print_interval": 5
+    }
+}

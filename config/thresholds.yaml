@@ -47,3 +47,29 @@ GAZE_X_THRESHOLD: 0.55        # gaze_x偏离阈值（左右）
 GAZE_Y_THRESHOLD: 0.65        # gaze_y偏离阈值（上下）
 GAZE_HOLD_TIME: 0.50          # gaze_off持续超过该秒数才触发（防闪）
 W_GAZE: 0.08                  # gaze窗口比例扣分权重
+
+# C
+hand:
+  face_distance: 0.15          # 手-脸距离阈值（摸脸/托腮）
+  head_distance: 0.20          # 手-头距离阈值（扶额）
+  touch_time_threshold: 2.0    # 持续摸脸时间（秒）
+  head_time_threshold: 3.0     # 持续撑头时间（秒）
+  smoothing_alpha: 0.4         # EMA 平滑系数（0~1，越大反应越快）
+  contact_grace: 0.25          # 触碰短时断续容错时间（秒）
+  forehead_offset_y: 0.02      # 额头点相对眼睛中心的上移量
+  mouth_offset_y: 0.0          # 口部中心的微调量
+  cheek_offset_x: 0.03         # 托腮需相对鼻子有一定水平偏移
+  face_hysteresis_frames: 7    # 近N帧多数决窗口（抑制抖动）
+  face_required_ratio: 0.6     # 多数决通过比例
+
+seat:
+  offset_threshold: 0.4        # 上半身偏离阈值（归一化坐标）
+  miss_frame_threshold: 5      # 姿态丢失帧数阈值
+
+phone:
+  yolo_confidence: 0.4         # YOLO 检测置信度阈值（0-1，提高以减少误检）
+  detection_interval: 3        # 每 N 帧检测一次（平衡性能与实时性）
+  detection_window_size: 10    # 滑动窗口大小（用于连续性判断）
+  confirm_threshold: 0.6       # 进入状态需要的检测比例（60%）
+  exit_threshold: 0.2          # 退出状态需要的检测比例（20%以下）
+
