@@ -1,3 +1,13 @@
+# A
+
+shoulder_tilt: 10.0           # 肩膀倾斜阈值，超过此值肩膀不平
+head_forward: 2.0             # 头部前伸阈值，超过此值头部前伸
+hunchback: 0.25               # 驼背检测阈值，低于此值判定驼背
+neck_tilt: 15.0               # 颈部侧倾阈值，超过此值颈部侧倾
+screen_distance: 0.5          # 屏幕距离阈值，超过此值离屏太近
+lean: 0.15                    # 躯干偏移阈值，超过此值身体歪斜
+
+
 # B
 EAR_CLOSED_RATIO: 0.45        # ear_ratio < 该值判闭眼
 EAR_HALF_RATIO: 0.70          # ear_ratio < 该值判半睁（否则睁眼）
