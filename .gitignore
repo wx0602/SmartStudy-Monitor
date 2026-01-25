@@ -1,14 +1,18 @@
-# 虚拟环境 (注意：没有点)
+# Python 虚拟环境
 venv/
+.venv/
+env/
 
-# 日志和数据
-logs/
-*.jsonl
-
-# Python 缓存
+# 编译文件
 __pycache__/
 *.pyc
 
-# IDE 配置
-.idea/
+# 项目运行生成的临时日志
+logs/
+*.jsonl
+*.json
+monitor.log
+
+# IDE 设置
 .vscode/
+.idea/
