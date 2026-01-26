@@ -1,76 +1,84 @@
-from PyQt5.QtWidgets import QLabel, QWidget
+from PyQt5.QtWidgets import QLabel, QFrame, QGraphicsDropShadowEffect
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QColor, QPainter, QPen, QBrush
+from PyQt5.QtGui import QPainter, QColor, QPen
 
-# 发光文字标签
-# 功能：创建一个带有特定颜色和字体的 QLabel，用于显示科幻风格的数值
 class CyberLabel(QLabel):
-    def __init__(self, text, size=12, color="#00ff00", bold=False):
-        super().__init__(text)
-        # 根据参数设置粗体
+    def __init__(self, text, size=10, color="#333333", bold=False, parent=None):
+        super().__init__(text, parent)
+        # 默认颜色为深灰
         weight = "bold" if bold else "normal"
-        # 使用 QSS 设置样式：微软雅黑字体，指定颜色和大小
-        self.setStyleSheet(f"color: {color}; font-family: 'Microsoft YaHei'; font-size: {size}pt; font-weight: {weight};")
+        self.setStyleSheet(f"""
+            color: {color}; 
+            font-size: {size}pt; 
+            font-weight: {weight};
+            background: transparent;
+        """)
 
-# 状态指示灯
-# 功能：模拟一个 LED 灯，有“亮”和“灭”两种状态，用于显示如“玩手机”等布尔状态
-class StatusLight(QLabel):
-    def __init__(self, text, on_color="#ff3333"):
-        super().__init__(text)
-        # 定义“亮”时的样式：背景色高亮，圆角
-        self.on_style = f"background-color: {on_color}; color: white; border-radius: 5px; padding: 4px;"
-        # 定义“灭”时的样式：深灰色背景，灰色文字
-        self.off_style = "background-color: #333; color: #777; border-radius: 5px; padding: 4px;"
+class StatusLight(QFrame):
+    def __init__(self, label_text, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(80, 30)
         
-        self.setStyleSheet(self.off_style)
-        self.setAlignment(Qt.AlignCenter)
-        self.setFont(QFont("Microsoft YaHei", 10))
+        self.label = QLabel(label_text, self)
+        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setGeometry(0, 0, 80, 30)
+        # 初始状态：浅灰背景，深灰文字
+        self.default_style = """
+            background-color: #e9ecef; 
+            color: #adb5bd; 
+            border-radius: 4px; 
+            border: 1px solid #dee2e6;
+            font-weight: normal;
+        """
+        # 激活状态：红色背景，白色文字 (警示色)
+        self.active_style = """
+            background-color: #dc3545; 
+            color: white; 
+            border-radius: 4px; 
+            border: 1px solid #dc3545;
+            font-weight: bold;
+        """
+        self.setStyleSheet(self.default_style)
 
-    # 切换灯的开关状态
-    def set_status(self, is_on):
-        self.setStyleSheet(self.on_style if is_on else self.off_style)
+    def set_status(self, is_active):
+        if is_active:
+            self.setStyleSheet(self.active_style)
+        else:
+            self.setStyleSheet(self.default_style)
 
-# 视线雷达
-# 功能：自定义绘制的 Widget，像雷达一样显示眼球的视线落点
-class GazeRadar(QWidget):
-    def __init__(self, size=100):
-        super().__init__()
+class GazeRadar(QFrame):
+    """简易视线指示器 (浅色版)"""
+    def __init__(self, size=80, parent=None):
+        super().__init__(parent)
         self.setFixedSize(size, size)
-        self.gx = 0.0 # 视线 X 坐标 (-1 到 1)
-        self.gy = 0.0 # 视线 Y 坐标 (-1 到 1)
-        self.active = False # 是否有有效数据
+        self.gx = 0
+        self.gy = 0
+        self.setStyleSheet("background: transparent;")
 
-    # 接收来自 AI 的视线数据并触发重绘
-    def update_gaze(self, gx, gy, active):
-        self.gx = gx if gx is not None else 0.0
-        self.gy = gy if gy is not None else 0.0
-        self.active = active
-        self.update() # 触发 paintEvent
+    def update_gaze(self, x, y, is_face_detected):
+        self.gx = x
+        self.gy = y
+        self.update()
 
-    # 核心绘制逻辑
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing) # 开启抗锯齿
-        
+        painter.setRenderHint(QPainter.Antialiasing)
         w, h = self.width(), self.height()
-        cx, cy = w // 2, h // 2
-        radius = min(w, h) // 2 - 5
         
-        # 1. 画深绿色的背景圆
-        painter.setPen(QPen(QColor(0, 50, 0), 2))
-        painter.setBrush(QBrush(QColor(0, 20, 0)))
-        painter.drawEllipse(cx - radius, cy - radius, radius * 2, radius * 2)
+        # 1. 绘制背景圆盘 (浅灰边框，白色填充)
+        painter.setPen(QPen(QColor("#dee2e6"), 2))
+        painter.setBrush(QColor("#ffffff"))
+        painter.drawEllipse(2, 2, w-4, h-4)
         
-        # 2. 画十字准星
-        painter.setPen(QPen(QColor(0, 100, 0), 1))
-        painter.drawLine(cx - radius, cy, cx + radius, cy)
-        painter.drawLine(cx, cy - radius, cx, cy + radius)
+        # 2. 绘制十字准星 (浅灰)
+        painter.setPen(QPen(QColor("#e9ecef"), 1))
+        painter.drawLine(w//2, 4, w//2, h-4)
+        painter.drawLine(4, h//2, w-4, h//2)
+
+        # 3. 绘制视线点 (标准蓝)
+        center_x = w/2 + self.gx * (w/2.5)
+        center_y = h/2 + self.gy * (h/2.5)
         
-        # 3. 如果数据有效，画代表视线的亮青色圆点
-        if self.active:
-            # 将归一化坐标 (-1~1) 映射到像素坐标
-            dot_x = cx + int(self.gx * radius)
-            dot_y = cy + int(self.gy * radius) 
-            painter.setPen(Qt.NoPen)
-            painter.setBrush(QBrush(QColor(0, 255, 255)))
-            painter.drawEllipse(dot_x - 4, dot_y - 4, 8, 8)
+        painter.setBrush(QColor("#007bff")) # 蓝色
+        painter.setPen(Qt.NoPen)
+        painter.drawEllipse(int(center_x)-4, int(center_y)-4, 8, 8)

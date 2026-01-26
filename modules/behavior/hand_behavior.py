@@ -207,4 +207,3 @@ class HandBadHabitsDetector:
         self.ema_face_dist = None
         self.ema_head_dist = None
         self.face_touch_window.clear()
-
