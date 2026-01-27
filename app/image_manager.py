@@ -14,15 +14,13 @@ class ImageManager:
         self.img_dir = self.root / "assets" / "images"
         
         # 图片映射表 (Key -> Filename)
-        # 即使文件名改了，代码里的 Key (如 'bg_dark') 不用变
+        # 即使文件名改了，代码里的 Key 不用变
         self.image_map = {
             "bg_dark": "dark.jpg",
             "bg_light": "light.jpg",
             "sidebar_dark": "darkbar.jpg",
             "sidebar_light": "lightbar.jpg",
-            
-            # 你可以在这里继续添加图标...
-            # "icon_logo": "logo.png",
+           
         }
         
         # 缓存加载过的 QPixmap，避免重复读取硬盘
@@ -34,14 +32,14 @@ class ImageManager:
         如果文件不存在，返回空字符串，防止报错。
         """
         if key not in self.image_map:
-            print(f"⚠️ ImageManager: 未定义的图片 Key '{key}'")
+            print(f"ImageManager: 未定义的图片 Key '{key}'")
             return ""
             
         filename = self.image_map[key]
         path = self.img_dir / filename
         
         if not path.exists():
-            print(f"⚠️ ImageManager: 图片文件丢失: {path}")
+            print(f"ImageManager: 图片文件丢失: {path}")
             return ""
             
         # PyQt 很多组件需要 str 类型的路径
@@ -56,7 +54,7 @@ class ImageManager:
             
         path_str = self.get_path(key)
         if not path_str:
-            return QPixmap() # 返回空图
+            return QPixmap() # 返回空
             
         pix = QPixmap(path_str)
         self._cache[key] = pix

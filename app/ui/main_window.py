@@ -10,7 +10,7 @@ from PyQt5.QtGui import QImage, QPixmap
 from app.audio_manager import SoundMgr
 from app.ai_worker import AIWorker
 
-# ✅ 修正了这里的导入路径，指向了新的分类文件夹
+# 导入路径指向分类文件夹
 from app.ui.styles import (
     theme_by_name, qss, 
     BackgroundWidget, SidebarBackgroundFrame
@@ -78,12 +78,12 @@ class MainWindow(QMainWindow):
         self.right_sidebar.set_bg_image(self._theme.sidebar_bg_image)
         self.setStyleSheet(qss(self._theme))
 
-        # 同步更新子组件主题
+        # 更新子组件主题
         self.toast.set_theme(self._theme_name)
         self.modal.set_theme(self._theme_name)
 
     def toggle_theme(self):
-        """在亮色和暗色主题之间切换。"""
+        # 在亮色和暗色主题之间切换
         self.apply_theme("dark" if self._theme_name == "light" else "light")
 
     def init_ui(self):
@@ -95,7 +95,7 @@ class MainWindow(QMainWindow):
         root.setContentsMargins(18, 18, 18, 18)
         root.setSpacing(14)
 
-        # --- 左侧区域 (视频 + 仪表盘) ---
+        # 左侧区域 (视频 + 仪表盘)
         left_side = QWidget()
         left_layout = QVBoxLayout(left_side)
         left_layout.setContentsMargins(0, 0, 0, 0)
@@ -122,7 +122,7 @@ class MainWindow(QMainWindow):
         self.video_stack.addWidget(self.video_label)
         self.video_stack.addWidget(self.overlay)
 
-        # 添加视频区到左侧布局，拉伸比例 7
+        # 添加视频区到左侧布局
         left_layout.addWidget(self.video_frame, stretch=7)
 
         # 初始化提示组件
@@ -137,7 +137,7 @@ class MainWindow(QMainWindow):
 
         root.addWidget(left_side, 1)
 
-        # --- 右侧侧边栏 ---
+        # 右侧侧边栏
         self.right_sidebar = SidebarBackgroundFrame(radius=14)
         self.right_sidebar.setObjectName("RightSidebar")
         self.right_sidebar.setFixedWidth(320)
@@ -160,7 +160,7 @@ class MainWindow(QMainWindow):
         self.side_status.setAlignment(Qt.AlignCenter)
         content_layout.addWidget(self.side_status)
 
-        # --- StackWidget 面板堆叠区 ---
+        # 面板堆叠区
         self.stack = QStackedWidget()
 
         self.clock_panel = ClockPanel()
@@ -176,7 +176,7 @@ class MainWindow(QMainWindow):
 
         root.addWidget(self.right_sidebar, 0)
 
-        # --- 侧边工具栏 (按钮区) ---
+        # 侧边工具栏，即面板切换按钮
         toolbar = QFrame()
         toolbar.setObjectName("Card")
         toolbar.setFixedWidth(68)
@@ -192,7 +192,7 @@ class MainWindow(QMainWindow):
         self.btn_theme = self._create_btn("🌓", self.toggle_theme)
         self.btn_exit = self._create_btn("⏻", self.close_application)
 
-        # 布局调整：先添加弹簧，再添加按钮，实现底部对齐
+        # 添加按钮，实现底部对齐
         t_lay.addStretch(1)
         t_lay.addWidget(self.btn_clock)
         t_lay.addWidget(self.btn_todo)
@@ -217,11 +217,9 @@ class MainWindow(QMainWindow):
         return QRect(top_left, self.video_frame.size())
 
     def on_modal_closed(self):
-        """
-        Type2 模态弹窗关闭时的回调。
+    
+        # 重置冷却时间和状态，允许后续弹窗再次触发
 
-        重置冷却时间和状态，允许后续弹窗再次触发。
-        """
         self._type2_open = False
         self._type2_last_close_time = time.time()
 
@@ -250,13 +248,13 @@ class MainWindow(QMainWindow):
         issue_msg = None
         issue_level = 0
 
-        # 检测 Type2 违规 (重度)
+        # 检测 重度 违规
         if config["phone"] and c.get("手机使用", {}).get("使用手机"):
             issue_msg, issue_level = "禁止使用手机", 2
         elif config["away"] and c.get("离席检测", {}).get("离席"):
             issue_msg, issue_level = "检测到离席", 2
 
-        # 检测 Type1 违规 (轻度)，仅在无重度违规时检测
+        # 检测 轻度 违规，仅在无重度违规时检测
         if not issue_msg:
             if config["dist"] and str(a.get("dist_screen")) == "too_close":
                 issue_msg, issue_level = "离屏幕太近了", 1

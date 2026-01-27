@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 from app.image_manager import ImgMgr
 
-
+# 主题配置数据类，定义界面所需的颜色和图片路径。
 @dataclass(frozen=True)
 class Theme:
-    """主题配置数据类，定义界面所需的颜色和图片路径。"""
     name: str
     bg_image: str
     bg: str
@@ -21,7 +20,6 @@ class Theme:
 
 
 # 亮色主题配置
-# 将 card2 颜色拉开，增强渐变效果 (白 -> 更浅蓝)
 LIGHT = Theme(
     name="light",
     bg_image=ImgMgr.get_path("bg_light"),
@@ -32,7 +30,6 @@ LIGHT = Theme(
     text="#1F2A37",
     subtext="#64748B",
     primary="#3B82C4",
-    # 蓝系友好的状态色
     good="#A0BF52",  # 冷青绿
     warn="#FFFDD0",  # 浅透明黄
     bad="#F0ADA0",   # 玫瑰红
@@ -60,20 +57,20 @@ DARK = Theme(
 
 
 def theme_by_name(name: str) -> Theme:
-    """根据名称获取主题对象，默认为 LIGHT。"""
+    #根据名称获取主题对象，默认为 LIGHT。
     return DARK if name == "dark" else LIGHT
 
 
 def qss(t: Theme) -> str:
     """生成全局 QSS 样式字符串。"""
     
-    # 卡片背景渐变
+    # 背景渐变
     card_bg = f"qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {t.card}, stop:1 {t.card2})"
 
-    # 视频区域内层背景透明度调整
+    # 视频区域内层背景透明度设置
     video_inner_bg = "rgba(0,0,0,0.32)" if t.name == "dark" else "rgba(255,255,255,0.28)"
 
-    # 右侧模块容器背景 (玻璃拟态)
+    # 右侧模块容器背景
     container_bg = "rgba(255,255,255,0.06)" if t.name == "dark" else "rgba(255,255,255,0.35)"
 
     # 右侧侧边栏内容区域样式

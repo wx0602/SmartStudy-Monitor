@@ -2,16 +2,8 @@ from PyQt5.QtWidgets import QMessageBox, QDialogButtonBox
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 
-
+#此文件写了退出程序时的弹窗，提供缓冲，以免用户误触到退出程序
 class QuitDialog(QMessageBox):
-    """
-    极简美化版退出弹窗。
-
-    特点：
-    1. 按钮在同一行且居中显示。
-    2. 按钮采用明显的方形边框风格。
-    3. 去除多余图标，保持界面纯净。
-    """
 
     def __init__(self, parent=None):
         """
@@ -34,11 +26,10 @@ class QuitDialog(QMessageBox):
         # 去除内容区域的大图标
         self.setIcon(QMessageBox.NoIcon)
 
-        # 设置按钮：Yes(确定) 和 No(取消)
+        # 设置按钮确定和取消
         self.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         self.setDefaultButton(QMessageBox.No)
 
-        # 获取并汉化按钮
         btn_yes = self.button(QMessageBox.Yes)
         btn_yes.setText("确定")
         btn_yes.setObjectName("BtnPrimary")
@@ -48,7 +39,6 @@ class QuitDialog(QMessageBox):
         btn_no.setObjectName("BtnSecondary")
 
         # 核心逻辑：强制按钮居中
-        # QMessageBox 内部使用 QDialogButtonBox 管理按钮
         button_box = self.findChild(QDialogButtonBox)
         if button_box:
             button_box.setCenterButtons(True)
@@ -57,12 +47,12 @@ class QuitDialog(QMessageBox):
         self._apply_stylesheet()
 
     def _apply_stylesheet(self):
-        """应用 QSS 样式表，强调方形边框设计。"""
+        """应用 QSS 样式表"""
         self.setStyleSheet("""
             QMessageBox {
                 background-color: #FFFFFF;
                 border: 1px solid #E5E7EB;
-                border-radius: 10px; /* 弹窗本身保持圆角 */
+                border-radius: 10px; /* 弹窗保持圆角 */
             }
             QLabel {
                 color: #1F2A37;
@@ -70,37 +60,37 @@ class QuitDialog(QMessageBox):
                 font-size: 16px;
                 font-weight: bold;
                 background: transparent;
-                padding: 20px 40px; /* 增加内边距，让文字周围更宽敞 */
-                min-width: 200px;   /* 保证弹窗有一定宽度 */
+                padding: 20px 40px; /* 增加内边距 */
+                min-width: 200px;   /* 保证弹窗宽度 */
                 qproperty-alignment: AlignCenter; /* 文字居中 */
             }
             
-            /* 按钮通用样式 - 方形框设计 */
+            /* 按钮通用样式，方形框设计 */
             QPushButton {
-                border-radius: 4px; /* 4px 为微圆角，视觉上接近方形 */
+                border-radius: 4px; /* 微圆角 */
                 padding: 8px 30px;
                 font-family: 'Microsoft YaHei UI', sans-serif;
                 font-size: 14px;
                 font-weight: bold;
                 min-width: 80px;
-                margin: 0 10px; /* 增加按钮之间的间距 */
+                margin: 0 10px; /* 按钮之间的间距 */
             }
 
             /* 确定按钮 (蓝色实心框) */
             QPushButton#BtnPrimary {
                 background-color: #3B82C4;
                 color: #FFFFFF;
-                border: 1px solid #2E6DA4; /* 深色边框增强立体感 */
+                border: 1px solid #2E6DA4; /* 深色边框 */
             }
             QPushButton#BtnPrimary:hover {
                 background-color: #3272B0;
             }
 
-            /* 取消按钮 (灰色描边框) */
+            /* 取消按钮 */
             QPushButton#BtnSecondary {
                 background-color: #FFFFFF; /* 白底 */
                 color: #4B5563;
-                border: 1px solid #9CA3AF; /* 明显的灰色边框 */
+                border: 1px solid #9CA3AF; /* 灰色边框 */
             }
             QPushButton#BtnSecondary:hover {
                 background-color: #F3F4F6;

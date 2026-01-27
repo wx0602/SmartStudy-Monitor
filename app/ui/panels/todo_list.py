@@ -7,15 +7,12 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 
-
+#此文件用于规定和初始化事件清单（todolist）
 class ToDoPanel(QFrame):
     """
     待办事项面板组件。
-
-    功能特点：
-    1. 风格适配：使用 setObjectName("Card") 继承全局卡片样式。
-    2. 数据持久化：自动保存任务到 todo.json。
-    3. 交互：支持回车添加、勾选完成、点击删除。
+    能够自动保存任务到 todo.json。
+    交互：支持回车添加、勾选完成、点击删除。
     """
 
     def __init__(self, parent=None):
@@ -35,13 +32,13 @@ class ToDoPanel(QFrame):
         layout.setContentsMargins(15, 15, 15, 15)
         layout.setSpacing(10)
 
-        # --- 标题 ---
+        # 标题
         title = QLabel("待办事项")
         title.setObjectName("Title")
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
-        # --- 输入区域 ---
+        # 输入区域
         input_layout = QHBoxLayout()
         input_layout.setSpacing(8)
 
@@ -81,7 +78,7 @@ class ToDoPanel(QFrame):
 
         layout.addLayout(input_layout)
 
-        # --- 任务列表区域 (滚动) ---
+        # 任务列表区域 
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setFrameShape(QFrame.NoFrame)
@@ -131,7 +128,6 @@ class ToDoPanel(QFrame):
         # 文本标签
         lbl = QLabel(task_data["text"])
         
-        # ✅ 核心修改：设置字体加粗
         font = lbl.font()
         font.setBold(True)         # 加粗
         font.setPixelSize(14)      # 字号微调，清晰度更高
@@ -165,7 +161,7 @@ class ToDoPanel(QFrame):
         """切换任务完成状态。"""
         task_data["done"] = chk.isChecked()
         
-        # 更新文字样式 (保留加粗，仅切换删除线)
+        # 文字样式 
         font = chk.lbl_ref.font()
         font.setStrikeOut(task_data["done"])
         chk.lbl_ref.setFont(font)
@@ -194,7 +190,9 @@ class ToDoPanel(QFrame):
             print(f"加载任务失败: {e}")
 
     def save_tasks(self):
-        """保存任务到 JSON 文件。"""
+        """保存任务到 JSON 文件。
+           确保下次打开后原来的内容仍然保存
+        """
         try:
             with open(self.data_file, "w", encoding="utf-8") as f:
                 json.dump(self.tasks, f, ensure_ascii=False, indent=2)

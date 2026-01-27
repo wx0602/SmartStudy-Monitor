@@ -9,14 +9,13 @@ class ControlsPanel(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        # ✅ 交给主题系统的卡片外观
+        # 由主题系统确定的卡片外观
         self.setObjectName("Card")
         self.setMinimumWidth(0)
 
-        # 蓝色对号 Base64（保留）
         icon_b64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDdiZmYiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cG9seWxpbmUgcG9pbnRzPSIyMCA2IDkgMTcgNCAxMiIvPjwvc3ZnPg=="
 
-        # ✅ 仅保留 indicator 的 image 注入（不再写白底/蓝字等）
+        # 保留 indicator 的 image 注入
         self.setStyleSheet(f"""
             QCheckBox::indicator:checked {{
                 image: url('{icon_b64}');
@@ -35,7 +34,7 @@ class ControlsPanel(QFrame):
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
-        # === 1. 核心违规组 ===
+        # 1. 核心违规组
         grp_core = QGroupBox("核心违规")
         lay_core = QVBoxLayout(grp_core)
         lay_core.setSpacing(0)
@@ -47,7 +46,7 @@ class ControlsPanel(QFrame):
         lay_core.addWidget(self.chk_away)
         layout.addWidget(grp_core)
 
-        # === 2. 姿态与视力组 ===
+        # 2. 姿态与视力组
         grp_body = QGroupBox("姿态与视力")
         lay_body = QVBoxLayout(grp_body)
         lay_body.setSpacing(0)
@@ -61,7 +60,7 @@ class ControlsPanel(QFrame):
         lay_body.addWidget(self.chk_dist)
         layout.addWidget(grp_body)
 
-        # === 3. 手部行为组 ===
+        # 3. 手部行为组
         grp_hand = QGroupBox("手部行为")
         lay_hand = QVBoxLayout(grp_hand)
         lay_hand.setSpacing(0)
@@ -73,9 +72,9 @@ class ControlsPanel(QFrame):
         lay_hand.addWidget(self.chk_face)
         layout.addWidget(grp_hand)
 
-        # === 4. 音量控制 ===
+        # 4. 音量控制
         vol_box = QFrame()
-        vol_box.setObjectName("Container")  # 让主题给它容器样式（可选）
+        vol_box.setObjectName("Container") 
         v_layout = QHBoxLayout(vol_box)
         v_layout.setContentsMargins(10, 10, 10, 10)
 

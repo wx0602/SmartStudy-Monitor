@@ -18,13 +18,13 @@ class ClockPanel(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        # 设置对象名称以应用 QSS 样式 (卡片外观)
+        # 设置对象卡片外观
         self.setObjectName("Card")
         self.setMinimumWidth(0)
 
         # 状态变量初始化
         self.alarm_active = False
-        self.countdown_state = "STOPPED"  # 可选值: STOPPED, RUNNING, PAUSED
+        self.countdown_state = "STOPPED" 
         self.total_seconds = 25 * 60
         self.remaining_seconds = self.total_seconds
 
@@ -40,7 +40,7 @@ class ClockPanel(QFrame):
         layout.setContentsMargins(15, 15, 15, 15)
         layout.setSpacing(6)
 
-        # 第一部分：主时间显示
+        # 1.主时间显示
         self.lbl_title = QLabel("当前时间")
         self.lbl_title.setObjectName("ClockTitle")
         self.lbl_title.setAlignment(Qt.AlignCenter)
@@ -58,7 +58,7 @@ class ClockPanel(QFrame):
 
         layout.addSpacing(18)
 
-        # 第二部分：每日闹钟
+        # 2.每日闹钟
         alarm_box = QFrame()
         alarm_box.setObjectName("Container")
         
@@ -96,7 +96,7 @@ class ClockPanel(QFrame):
         layout.addWidget(alarm_box)
         layout.addSpacing(12)
 
-        # 第三部分：倒计时器
+        # 3.倒计时器
         timer_box = QFrame()
         timer_box.setObjectName("Container")
         timer_box.setFixedHeight(140)
@@ -114,7 +114,7 @@ class ClockPanel(QFrame):
         self.stack_display = QStackedWidget()
         self.stack_display.setFixedHeight(42)
 
-        # 页面 0: 设置分钟数 (QSpinBox)
+        # 设置分钟数
         self.spin_min = QSpinBox()
         self.spin_min.setRange(1, 180)
         self.spin_min.setValue(25)
@@ -123,7 +123,7 @@ class ClockPanel(QFrame):
         self.spin_min.setStyleSheet("font-size: 34px; font-weight: 1000;")
         self.stack_display.addWidget(self.spin_min)
 
-        # 页面 1: 倒计时数字显示 (QLabel)
+        # 倒计时数字显示
         self.lbl_countdown = QLabel("25:00")
         self.lbl_countdown.setAlignment(Qt.AlignCenter)
         self.lbl_countdown.setStyleSheet(
@@ -158,8 +158,9 @@ class ClockPanel(QFrame):
 
         layout.addStretch()
 
+    #主更新循环，用于刷新时间显示，检查闹钟与倒计时状态。
     def update_loop(self):
-        """主更新循环：刷新时间显示，检查闹钟与倒计时状态。"""
+        
         t = QTime.currentTime()
         self.lbl_time.setText(t.toString("HH:mm:ss"))
         
@@ -179,7 +180,7 @@ class ClockPanel(QFrame):
                 t.second() == 0):
                 self.trigger_alert("⏰ 闹钟响铃！")
 
-        # 更新倒计时逻辑
+        # 倒计时逻辑
         if self.countdown_state == "RUNNING":
             if self.remaining_seconds > 0:
                 self.remaining_seconds -= 1
@@ -210,10 +211,10 @@ class ClockPanel(QFrame):
             self.update_lcd_display()
             self.stack_display.setCurrentIndex(1)
         elif self.countdown_state == "RUNNING":
-            # 运行中 -> 暂停
+            # 运行中显示暂停
             self.countdown_state = "PAUSED"
         elif self.countdown_state == "PAUSED":
-            # 暂停中 -> 继续
+            # 暂停中显示继续
             self.countdown_state = "RUNNING"
 
         self.update_btn_ui()
@@ -237,7 +238,6 @@ class ClockPanel(QFrame):
             self.btn_start.setText("继续" if is_paused else "启动")
             self.btn_start.setObjectName("BtnStart")
 
-        # 刷新样式以应用新的 objectName
         self.btn_start.style().unpolish(self.btn_start)
         self.btn_start.style().polish(self.btn_start)
         self.btn_start.update()
@@ -250,8 +250,7 @@ class ClockPanel(QFrame):
     def trigger_alert(self, msg):
         """
         触发提醒。
-        
-        使用 'timer' 专用音效，区别于系统警告声。
+        使用 'timer' 专用音效
         """
         SoundMgr.play("timer")
         print(msg)

@@ -45,7 +45,7 @@ if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
 
-# 尝试导入配置管理器
+# 导入配置管理器
 try:
     from app.config_manager import ConfigManager
 except ImportError:
@@ -56,7 +56,7 @@ except ImportError:
         print("Warning: ConfigManager import failed, using default config.")
         ConfigManager = None
 
-# 尝试导入 AI 模块
+# 导入 AI 模块
 try:
     from modules.posture.detector import PostureDetector
     from modules.attention.monitor import AttentionMonitor
@@ -207,12 +207,12 @@ class AIWorker(QThread):
                 print("Warning: Could not read video frame.")
                 break
 
-            # 镜像翻转并转 RGB
+            # 镜像翻转并转RGB
             frame = cv2.flip(frame, 1)
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             try:
-                # --- A: 坐姿检测 ---
+                # A: 坐姿检测
                 data_a = {}
                 pose_landmarks = None
                 if self.module_a:
@@ -227,12 +227,12 @@ class AIWorker(QThread):
                     data_a["is_shoulder_tilted"] = abs(s_ang) > self.shoulder_thresh
                     data_a["is_neck_tilted"] = abs(n_ang) > self.neck_thresh
 
-                # --- 手部关键点 ---
+                # 手部关键点
                 hands_results = None
                 if hasattr(self, 'mp_hands'):
                     hands_results = self.mp_hands.process(frame_rgb)
 
-                # --- B: 注意力检测 ---
+                # B: 注意力检测
                 data_b = {}
                 if self.module_b:
                     try:
@@ -241,14 +241,14 @@ class AIWorker(QThread):
                     except Exception:
                         pass
 
-                # --- C: 行为检测 ---
+                # C: 行为检测
                 data_c = {}
                 if self.module_c:
                     hand_landmarks = hands_results.multi_hand_landmarks if hands_results else None
                     wrapper = DetectionResultsWrapper(pose_landmarks, hand_landmarks)
                     data_c = self.module_c.process(wrapper, frame=frame)
 
-                # 写日志 & 发送数据给 UI
+                # 写日志并且发送数据给 UI
                 self.save_log(data_a, data_b, data_c)
                 self.update_data_signal.emit({"A": data_a, "B": data_b, "C": data_c})
 
