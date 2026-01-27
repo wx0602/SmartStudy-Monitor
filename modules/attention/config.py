@@ -1,3 +1,4 @@
+# 专注度的权重配置文件
 import os
 import yaml
 

@@ -1,8 +1,10 @@
-# app/ui/theme.py
 from dataclasses import dataclass
+from app.image_manager import ImgMgr
+
 
 @dataclass(frozen=True)
 class Theme:
+    """主题配置数据类，定义界面所需的颜色和图片路径。"""
     name: str
     bg_image: str
     bg: str
@@ -18,66 +20,66 @@ class Theme:
     sidebar_bg_image: str
 
 
-# ✅ 低饱和、耐看的配色（明暗两套）
-# ✅ 亮色：把 card2 拉开一些，让渐变更明显（白 -> 更浅蓝）
+# 亮色主题配置
+# 将 card2 颜色拉开，增强渐变效果 (白 -> 更浅蓝)
 LIGHT = Theme(
     name="light",
-    bg_image="app/ui/light.jpg",
+    bg_image=ImgMgr.get_path("bg_light"),
     bg="#F5F7FB",
     card="#FFFFFF",
     card2="#D7E8FF",
     border="#DCE6F5",
     text="#1F2A37",
     subtext="#64748B",
-
-    primary="#3B82C4",   # 主蓝（不变）
-
-    # ✅ 更“蓝系友好”的状态色
-    good="#A0BF52",   # 冷青绿（高级）
-    warn="#FFFDD0",   # ✅ 浅透明黄（奶油黄 / 香草黄）
-    bad="#F0ADA0",    # 玫瑰红（克制）
-    sidebar_bg_image="app/ui/lightbar.jpg",
+    primary="#3B82C4",
+    # 蓝系友好的状态色
+    good="#A0BF52",  # 冷青绿
+    warn="#FFFDD0",  # 浅透明黄
+    bad="#F0ADA0",   # 玫瑰红
+    sidebar_bg_image=ImgMgr.get_path("sidebar_light"),
 )
 
 
+# 暗色主题配置
 DARK = Theme(
     name="dark",
-    bg_image="app/ui/dark.jpg",
+    bg_image=ImgMgr.get_path("bg_dark"),
     bg="#070B14",
     card="#071426",
     card2="#163A66",
     border="#1D3557",
     text="#E5E7EB",
     subtext="#9AA6B2",
-
-    primary="#6BA6D6",   # 暗色主蓝（不变）
-
-    # ✅ 暗色更稳、更柔
-    good="#8EAF8C",   # 冷青绿
-    warn="#BBA988",   # 冷金（不橙）
-    bad="#662B1F",    # 暗玫瑰红
-    sidebar_bg_image="app/ui/darkbar.jpg",
+    primary="#6BA6D6",
+    # 暗色模式下更柔和的状态色
+    good="#8EAF8C",
+    warn="#BBA988",
+    bad="#662B1F",
+    sidebar_bg_image=ImgMgr.get_path("sidebar_dark"),
 )
 
 
 def theme_by_name(name: str) -> Theme:
+    """根据名称获取主题对象，默认为 LIGHT。"""
     return DARK if name == "dark" else LIGHT
 
 
 def qss(t: Theme) -> str:
-    # ✅ 卡片背景：明暗都使用渐变
+    """生成全局 QSS 样式字符串。"""
+    
+    # 卡片背景渐变
     card_bg = f"qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {t.card}, stop:1 {t.card2})"
 
-    # ✅ 视频内层：亮色更轻，暗色更稳
+    # 视频区域内层背景透明度调整
     video_inner_bg = "rgba(0,0,0,0.32)" if t.name == "dark" else "rgba(255,255,255,0.28)"
 
-    # ✅ Container：右侧闹钟/计时器模块背景（玻璃层）
+    # 右侧模块容器背景 (玻璃拟态)
     container_bg = "rgba(255,255,255,0.06)" if t.name == "dark" else "rgba(255,255,255,0.35)"
 
-    # ✅ 右侧 SidebarContent：更克制的磨砂（按主题）
+    # 右侧侧边栏内容区域样式
     if t.name == "dark":
         sidebar_overlay = "rgba(8,18,32,0.34)"
-        sidebar_border  = "rgba(120, 180, 255, 0.22)"
+        sidebar_border = "rgba(120, 180, 255, 0.22)"
         toolbtn_hover_bg = "rgba(107,166,214,0.12)"
         checkbox_hover_bg = "rgba(107,166,214,0.10)"
         prog_bg = "rgba(255,255,255,0.08)"
@@ -85,14 +87,14 @@ def qss(t: Theme) -> str:
         state_active_text = "#0B1220"
         alert1_text = "#0B1220"
 
-        # ✅ 额外：暗色高光边（更科技）
-        card_border = "rgba(255,255,255,0.08)"            # 外边更像玻璃
-        card_highlight = "rgba(255,255,255,0.06)"         # 顶部内高光
-        card_highlight2 = "rgba(255,255,255,0.02)"        # 下方渐隐
+        # 暗色模式下的高光边框效果
+        card_border = "rgba(255,255,255,0.08)"
+        card_highlight = "rgba(255,255,255,0.06)"
+        card_highlight2 = "rgba(255,255,255,0.02)"
         hero_border = "rgba(255,255,255,0.09)"
     else:
         sidebar_overlay = "rgba(255,255,255,0.20)"
-        sidebar_border  = "rgba(120, 170, 255, 0.22)"
+        sidebar_border = "rgba(120, 170, 255, 0.22)"
         toolbtn_hover_bg = "rgba(59,130,196,0.10)"
         checkbox_hover_bg = "rgba(59,130,196,0.08)"
         prog_bg = "rgba(255,255,255,0.45)"
@@ -100,9 +102,9 @@ def qss(t: Theme) -> str:
         state_active_text = "#1F2A37"
         alert1_text = "#1F2A37"
 
-        # ✅ 亮色：保持边框用主题 border
+        # 亮色模式使用主题定义的边框
         card_border = t.border
-        card_highlight = "rgba(255,255,255,0.00)"         # 亮色无需内高光
+        card_highlight = "rgba(255,255,255,0.00)"
         card_highlight2 = "rgba(255,255,255,0.00)"
         hero_border = t.border
 
@@ -113,35 +115,22 @@ def qss(t: Theme) -> str:
         background: transparent;
     }}
 
-    /* =========================
-       通用卡片（含暗色高光边）
-       ========================= */
+    /* 通用卡片样式 */
     QFrame#Card {{
         background: {card_bg};
         border: 1px solid {card_border};
         border-radius: 14px;
-
-        /* ✅ 暗色“内高光”质感（亮色为 0 不影响） */
         padding-top: 1px;
     }}
-    QFrame#Card::before {{
-        /* Qt Stylesheet 不支持 ::before，这里占位说明 */
-    }}
 
-    /* ✅ 用 inset 阴影模拟高光（Qt 支持有限，但多数平台可用） */
-    QFrame#Card {{
-        /* 上沿轻高光 + 内部轻暗角（让渐变更立体） */
-        background: {card_bg};
-    }}
-
-    /* 右侧侧边栏底框（背景图由 SidebarBackgroundFrame 绘制） */
+    /* 右侧侧边栏底框 */
     QFrame#RightSidebar {{
         background: transparent;
         border: 1px solid {t.border};
         border-radius: 14px;
     }}
 
-    /* ✅ 右侧内容磨砂层（不盖死背景图） */
+    /* 右侧内容磨砂层 */
     QFrame#SidebarContent {{
         background: {sidebar_overlay};
         border: 1px solid {sidebar_border};
@@ -156,9 +145,7 @@ def qss(t: Theme) -> str:
         background: transparent;
     }}
 
-    /* =========================
-       视频大卡（暗色也加一点高光边）
-       ========================= */
+    /* 视频主显示区域 */
     QFrame#HeroCard {{
         background: {card_bg};
         border: 1px solid {hero_border};
@@ -169,9 +156,7 @@ def qss(t: Theme) -> str:
         border-radius: 18px;
     }}
 
-    /* =========================
-       标题体系（层级更清晰）
-       ========================= */
+    /* 标题样式 */
     QLabel#Title {{
         color: {t.text};
         font-weight: 900;
@@ -184,9 +169,7 @@ def qss(t: Theme) -> str:
         font-size: 12px;
     }}
 
-    /* =========================
-       工具栏按钮
-       ========================= */
+    /* 工具栏按钮 */
     QPushButton#ToolBtn {{
         background: rgba(255,255,255,0.0);
         border: 1px solid {t.border};
@@ -200,9 +183,7 @@ def qss(t: Theme) -> str:
         background: {toolbtn_hover_bg};
     }}
 
-    /* =========================
-       进度条
-       ========================= */
+    /* 进度条样式 */
     QProgressBar {{
         background: {prog_bg};
         border: 1px solid {t.border};
@@ -216,18 +197,16 @@ def qss(t: Theme) -> str:
         border-radius: 8px;
     }}
 
-    /* ✅ 进度条按属性变色 */
+    /* 根据属性动态改变进度条颜色 */
     QProgressBar[barLevel="good"]::chunk {{ background: {t.good}; }}
     QProgressBar[barLevel="warn"]::chunk {{ background: {t.warn}; }}
     QProgressBar[barLevel="bad"]::chunk  {{ background: {t.bad};  }}
 
-    /* ✅ 姿态状态文字按属性变色 */
+    /* 姿态状态文字颜色动态变化 */
     QLabel#PostureStatus[state="good"] {{ color: {t.good}; }}
     QLabel#PostureStatus[state="bad"]  {{ color: {t.bad};  }}
 
-    /* =========================
-       行为块两态
-       ========================= */
+    /* 行为状态标签 */
     QLabel#StateInactive {{
         background: {state_inactive_bg};
         border: 1px solid {t.border};
@@ -245,9 +224,7 @@ def qss(t: Theme) -> str:
         font-weight: 1000;
     }}
 
-    /* =========================
-       警报框（仍保留原 Type1/Type2）
-       ========================= */
+    /* 警报提示框样式 */
     QLabel#AlertType2 {{
         background: {t.bad};
         color: white;
@@ -265,9 +242,7 @@ def qss(t: Theme) -> str:
         padding: 10px 20px;
     }}
 
-    /* =========================
-       ControlsPanel / GroupBox
-       ========================= */
+    /* 设置面板与分组框 */
     QGroupBox {{
         font-weight: 900;
         border: none;
@@ -306,7 +281,6 @@ def qss(t: Theme) -> str:
     QCheckBox::indicator:checked {{
         background: rgba(255,255,255,0.06);
         border: 2px solid {t.primary};
-        /* image 由 controls.py 注入 Base64 */
     }}
 
     QSlider::groove:horizontal {{
@@ -322,9 +296,7 @@ def qss(t: Theme) -> str:
         background: {t.primary};
     }}
 
-    /* =========================
-       ClockPanel（时钟）
-       ========================= */
+    /* 时钟面板专用样式 */
     QFrame#Container {{
         background: {container_bg};
         border-radius: 12px;
@@ -349,6 +321,7 @@ def qss(t: Theme) -> str:
         font-weight: 700;
     }}
 
+    /* 时钟面板按钮样式 */
     QPushButton#BtnStart {{
         background: rgba(47,163,107,0.16);
         color: {t.good};
@@ -406,7 +379,6 @@ def qss(t: Theme) -> str:
         color: {t.text};
     }}
 
-    /* 暗色科技感：hover 边框微亮 */
+    /* 暗色模式下的悬停边框高亮 */
     {"QFrame#Card:hover, QFrame#HeroCard:hover { border-color: %s; }" % t.primary if t.name=="dark" else ""}
-
     """
