@@ -8,10 +8,19 @@ from pathlib import Path
 from PyQt5.QtCore import QThread, pyqtSignal
 
 # 引入配置管理器
-from app.config_manager import ConfigManager
+try:
+    from app.config_manager import ConfigManager
+except ImportError:
+    # 备用：如果路径不对，尝试从上一级导入
+    try:
+        sys.path.append(str(Path(__file__).resolve().parents[2]))
+        from app.config_manager import ConfigManager
+    except:
+        print("⚠️ 警告: ConfigManager 导入失败，将使用默认配置")
+        ConfigManager = None
 
-# 确保能找到 modules 文件夹
-project_root = Path(__file__).resolve().parents[1]
+# 确保能找到 modules 文件夹 (定位到项目根目录)
+project_root = Path(__file__).resolve().parents[2]  # 根据 app/ui/ai_worker.py 的层级调整
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
@@ -21,7 +30,7 @@ try:
     from modules.attention.monitor import AttentionMonitor
     from modules.behavior.behavior_detector import BehaviorDetector
 except ImportError:
-    print("❌ 警告: 找不到 modules 文件夹，AI 功能将不可用")
+    print("❌ 警告: 找不到 modules 文件夹或 AI 模块，AI 功能将受限")
     PostureDetector = None
     AttentionMonitor = None
     BehaviorDetector = None
@@ -53,9 +62,9 @@ class AIWorker(QThread):
         self.cam_id = 0 # 默认摄像头 ID
         
         # 初始化配置管理
-        self.config_mgr = ConfigManager()
-        self.shoulder_thresh = self.config_mgr.get("shoulder_tilt", 10.0)
-        self.neck_thresh = self.config_mgr.get("neck_tilt", 15.0)
+        self.config_mgr = ConfigManager() if ConfigManager else None
+        self.shoulder_thresh = self.config_mgr.get("shoulder_tilt", 10.0) if self.config_mgr else 10.0
+        self.neck_thresh = self.config_mgr.get("neck_tilt", 15.0) if self.config_mgr else 15.0
 
         # 日志路径设置
         self.log_dir = project_root / "logs"
@@ -79,17 +88,27 @@ class AIWorker(QThread):
                 self.module_b.calibrator.GAZE_BASELINE_READY = True
             
             # 3. 行为检测 (传入配置)
-            self.module_c = BehaviorDetector(self.config_mgr.data) if BehaviorDetector else None
+            config_data = self.config_mgr.data if self.config_mgr else {}
+            self.module_c = BehaviorDetector(config_data) if BehaviorDetector else None
 
-            # 4. MediaPipe 手部模型 (用于行为辅助)
+            # 4. MediaPipe 手部模型 (关键修复：兼容性导入)
             import mediapipe as mp
-            self.mp_hands = mp.solutions.hands.Hands(
+            try:
+                # 尝试标准方式获取 solutions
+                mp_solutions = mp.solutions
+            except AttributeError:
+                # 如果失败，强制加载 python 子模块 (解决 "no attribute solutions" 错误)
+                from mediapipe.python import solutions as mp_solutions
+
+            self.mp_hands = mp_solutions.hands.Hands(
                 max_num_hands=2, 
                 min_detection_confidence=0.5, 
                 min_tracking_confidence=0.5
             )
-            self.mp_drawing = mp.solutions.drawing_utils
-            self.mp_pose_conn = mp.solutions.pose.POSE_CONNECTIONS
+            self.mp_drawing = mp_solutions.drawing_utils
+            self.mp_pose_conn = mp_solutions.pose.POSE_CONNECTIONS
+            
+            print("✅ AIWorker 模型初始化完成")
             
         except Exception as e:
             print(f"❌ 模型初始化失败: {e}")
@@ -128,14 +147,18 @@ class AIWorker(QThread):
 
     # 线程主循环
     def run(self):
+        print("📷 AIWorker 线程已启动，正在打开摄像头...")
         cap = cv2.VideoCapture(self.cam_id)
         if not cap.isOpened():
+            print("❌ 无法打开摄像头")
             self.update_data_signal.emit({"Error": "Camera Fail"})
             return
         
         while self._run_flag:
             ret, frame = cap.read()
-            if not ret: break
+            if not ret: 
+                print("⚠️ 无法读取视频帧")
+                break
             
             # 镜像翻转并转 RGB
             frame = cv2.flip(frame, 1)
@@ -149,18 +172,20 @@ class AIWorker(QThread):
                     data_a = self.module_a.process_frame(frame)
                     pose_landmarks = data_a.get("landmarks")
                     
-                    # 关键修复：标准化角度并重新判断
+                    # 角度标准化
                     s_ang = normalize_angle(data_a.get("shoulder_tilt_angle"))
                     n_ang = normalize_angle(data_a.get("neck_tilt"))
                     
                     data_a["shoulder_tilt_angle"] = s_ang
                     data_a["neck_tilt"] = n_ang
-                    # 使用 ConfigManager 里的阈值进行判断
+                    # 使用配置阈值判断
                     data_a["is_shoulder_tilted"] = abs(s_ang) > self.shoulder_thresh
                     data_a["is_neck_tilted"] = abs(n_ang) > self.neck_thresh
 
                 # --- 手部关键点 ---
-                hands_results = self.mp_hands.process(frame_rgb)
+                hands_results = None
+                if hasattr(self, 'mp_hands'):
+                    hands_results = self.mp_hands.process(frame_rgb)
 
                 # --- B: 注意力检测 ---
                 data_b = {}
@@ -173,7 +198,8 @@ class AIWorker(QThread):
                 # --- C: 行为检测 ---
                 data_c = {}
                 if self.module_c:
-                    wrapper = DetectionResultsWrapper(pose_landmarks, hands_results.multi_hand_landmarks)
+                    hand_landmarks = hands_results.multi_hand_landmarks if hands_results else None
+                    wrapper = DetectionResultsWrapper(pose_landmarks, hand_landmarks)
                     data_c = self.module_c.process(wrapper, frame=frame)
 
                 # 写日志 & 发送数据给 UI
@@ -182,14 +208,18 @@ class AIWorker(QThread):
 
                 self.change_pixmap_signal.emit(frame_rgb)
                 
-            except Exception:
-                # 生产环境通常不打印详细错误，防止刷屏
-                pass 
+            except Exception as e:
+                # 打印一次错误后静默，防止刷屏
+                if not hasattr(self, "_has_printed_error"):
+                    print(f"⚠️ AI 循环处理出错: {e}")
+                    traceback.print_exc()
+                    self._has_printed_error = True
             
             # 控制帧率 (约 30fps)
             time.sleep(0.03)
 
         cap.release()
+        print("⏹️ AIWorker 线程已停止")
 
     # 停止线程
     def stop(self):
