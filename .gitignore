@@ -1,7 +1,18 @@
-# 虚拟环境
+# Python 虚拟环境
+venv/
 .venv/
-# 测试文件
-test_posture.py
-# Python缓存文件
+env/
+
+# 编译文件
 __pycache__/
 *.pyc
+
+# 项目运行生成的临时日志
+logs/
+*.jsonl
+*.json
+monitor.log
+
+# IDE 设置
+.vscode/
+.idea/
