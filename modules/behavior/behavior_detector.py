@@ -17,10 +17,15 @@ class BehaviorDetector:
 
     def process(self, results, frame=None):
         """
-        对单帧结果进行行为检测
-        返回 Python 字典
+        对单帧结果进行行为检测。
+        
+        Args:
+            results: MediaPipe 或其他模块的前置检测结果
+            frame: 当前视频帧
+            
+        Returns:
+            dict: 包含各项行为检测状态的字典
         """
-
         hand_result = self.hand_detector.detect_hand_bad_habits(results)
         phone_result = self.phone_detector.detect(results, frame=frame)
         seat_result = self.seat_detector.detect(results)
@@ -33,7 +38,7 @@ class BehaviorDetector:
 
     def process_json(self, results, frame=None):
         """
-        返回 JSON 字符串（方便调试 / 输出）
+        返回 JSON 字符串（方便调试 / 输出）。
         """
         return json.dumps(
             self.process(results, frame=frame),

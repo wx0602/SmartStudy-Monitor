@@ -2,7 +2,6 @@ import cv2
 import json
 import numpy as np
 from collections import deque
-
 import mediapipe as mp
 
 from .config import (
@@ -30,9 +29,12 @@ mp_face = mp.solutions.face_mesh
 
 
 class AttentionMonitor:
+    """
+    专注度监测器
+    """
     def __init__(self, fps=30, baseline_frames=50):
         """
-        初始化专注度监测器。
+        初始化监测器。
 
         Args:
             fps (int): 视频流帧率
@@ -127,7 +129,7 @@ class AttentionMonitor:
         """
         if self.closed_run_frames <= 0:
             return
-        
+
         dur = self.closed_run_frames * self.frame_time
         if dur < BLINK_MIN_SEC:
             # 回溯清除窗口中的闭眼标记
@@ -136,7 +138,7 @@ class AttentionMonitor:
                 idx = len(self.closed_score_flags) - 1 - i
                 if idx >= 0:
                     self.closed_score_flags[idx] = 0
-        
+
         self.closed_run_frames = 0
 
     def calibrate(self, frame):
@@ -145,7 +147,6 @@ class AttentionMonitor:
     def calc_attention_score(self):
         """
         计算当前的专注度分数 (0-100)。
-        
         逻辑基于滑动窗口内的各类违规比例和头部运动稳定性。
         """
         n = len(self.closed_score_flags)
@@ -235,7 +236,7 @@ class AttentionMonitor:
 
             output["attention_score"] = self.calc_attention_score()
             m = self.last_metrics or {}
-            
+
             output["perclos"] = round(m.get("perclos", 0.0), 3) if m else None
             output["away_ratio"] = round(m.get("away_ratio", 0.0), 3) if m else None
             output["down_ratio"] = round(m.get("down_ratio", 0.0), 3) if m else None
@@ -243,7 +244,7 @@ class AttentionMonitor:
             output["noface_ratio"] = round(m.get("noface_ratio", 0.0), 3) if m else None
             output["gaze_ratio"] = round(m.get("gaze_ratio", 0.0), 3) if m else None
             output["unstable"] = round(m.get("unstable", 0.0), 3) if m else None
-            
+
             return json.dumps(output, ensure_ascii=False)
 
         # 检测到人脸的情况
@@ -304,7 +305,7 @@ class AttentionMonitor:
 
                     is_gaze_off = (abs(gx_s) > GAZE_X_THRESHOLD) or (abs(gy_s) > GAZE_Y_THRESHOLD)
                     self.gaze_flags.append(1 if is_gaze_off else 0)
-                    
+
                     self.gaze_off_time = (self.gaze_off_time + self.frame_time) if is_gaze_off else 0.0
                     output["gaze_off"] = (self.gaze_off_time >= GAZE_HOLD_TIME)
 
@@ -326,7 +327,7 @@ class AttentionMonitor:
 
             output["yaw_angle"] = round(median_deque(self.yaw_window), 2) if len(self.yaw_window) else None
             output["pitch_angle"] = round(median_deque(self.pitch_window), 2) if len(self.pitch_window) else None
-            
+
             output["attention_score"] = self.calc_attention_score()
             m = self.last_metrics or {}
             output["perclos"] = round(m.get("perclos", 0.0), 3) if m else None
@@ -396,7 +397,7 @@ class AttentionMonitor:
 
         output["attention_score"] = self.calc_attention_score()
         m = self.last_metrics or {}
-        
+
         output["perclos"] = round(m.get("perclos", 0.0), 3) if m else None
         output["away_ratio"] = round(m.get("away_ratio", 0.0), 3) if m else None
         output["down_ratio"] = round(m.get("down_ratio", 0.0), 3) if m else None
