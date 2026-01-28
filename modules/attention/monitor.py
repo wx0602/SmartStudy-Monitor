@@ -34,8 +34,7 @@ class AttentionMonitor:
     """
     def __init__(self, fps=30, baseline_frames=50):
         """
-        初始化监测器。
-
+        初始化监测器
         Args:
             fps (int): 视频流帧率
             baseline_frames (int): 校准阶段所需的帧数
@@ -43,7 +42,7 @@ class AttentionMonitor:
         self.fps = fps
         self.frame_time = 1.0 / fps
 
-        # 各类违规状态持续时间（秒）
+        # 各类违规状态持续时间
         self.eye_closed_time = 0.0
         self.yaw_off_time = 0.0
         self.pitch_down_time = 0.0
@@ -62,7 +61,7 @@ class AttentionMonitor:
         self.gaze_x_window = deque(maxlen=self.win_len)
         self.gaze_y_window = deque(maxlen=self.win_len)
 
-        # 状态标志滑动窗口 (存储 0 或 1)
+        # 状态标志滑动窗口
         self.closed_score_flags = deque(maxlen=self.win_len)
         self.away_flags = deque(maxlen=self.win_len)
         self.down_flags = deque(maxlen=self.win_len)
@@ -92,7 +91,7 @@ class AttentionMonitor:
         self.pose_estimator = PoseEstimator()
         self.calibrator = BaselineCalibrator(baseline_frames=baseline_frames)
 
-        # 用于处理角度跳变（防万向节锁或周期跳变）
+        # 用于处理角度跳变
         self.prev_yaw_rel = 0.0
         self.prev_pitch_rel = 0.0
 
@@ -124,8 +123,8 @@ class AttentionMonitor:
 
     def finish_closed_run_if_needed(self):
         """
-        如果闭眼片段时长短于阈值（如正常眨眼），则回溯修正标志位。
-        防止因正常眨眼导致专注度分数下降。
+        如果闭眼片段时长短于阈值，则回溯修正标志位
+        防止因正常眨眼导致专注度分数下降
         """
         if self.closed_run_frames <= 0:
             return
@@ -146,8 +145,8 @@ class AttentionMonitor:
 
     def calc_attention_score(self):
         """
-        计算当前的专注度分数 (0-100)。
-        逻辑基于滑动窗口内的各类违规比例和头部运动稳定性。
+        计算当前的专注度分数
+        逻辑基于滑动窗口内的各类违规比例和头部运动稳定性
         """
         n = len(self.closed_score_flags)
         if n <= 0:
@@ -162,7 +161,7 @@ class AttentionMonitor:
         noface_ratio = float(sum(self.noface_flags)) / n
         gaze_ratio = float(sum(self.gaze_flags)) / n
 
-        # 计算头部稳定性（标准差）
+        # 计算头部稳定性
         yaw_std = std_deque(self.yaw_window) if len(self.yaw_window) > 5 else 0.0
         pitch_std = std_deque(self.pitch_window) if len(self.pitch_window) > 5 else 0.0
 
@@ -202,7 +201,7 @@ class AttentionMonitor:
 
     def process(self, frame) -> str:
         """
-        处理单帧图像，返回 JSON 格式的监测结果。
+        处理单帧图像，返回 JSON 格式的监测结果
         """
         h, w = frame.shape[:2]
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -266,7 +265,7 @@ class AttentionMonitor:
             blink_state = "open"
         output["blink_state"] = blink_state
 
-        # 计算视线 (Gaze)
+        # 计算视线
         if blink_state == "closed":
             self.gaze_flags.append(0)
             self.gaze_off_time = 0.0
@@ -309,7 +308,7 @@ class AttentionMonitor:
                     self.gaze_off_time = (self.gaze_off_time + self.frame_time) if is_gaze_off else 0.0
                     output["gaze_off"] = (self.gaze_off_time >= GAZE_HOLD_TIME)
 
-        # 计算头部姿态 (Pose)
+        # 计算头部姿态
         pose = self.pose_estimator.calc_pose_abs(lm, w, h)
         if pose is None:
             if blink_state == "closed":
@@ -410,7 +409,7 @@ class AttentionMonitor:
 
     def reset_runtime_state(self, seed_zero=True):
         """
-        重置运行时状态，用于校准完成后清空历史数据。
+        重置运行时状态，用于校准完成后清空历史数据
         """
         self.eye_closed_time = 0.0
         self.yaw_off_time = 0.0

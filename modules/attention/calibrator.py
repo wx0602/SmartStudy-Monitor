@@ -41,7 +41,7 @@ class BaselineCalibrator:
 
         lm = res.multi_face_landmarks[0].landmark
 
-        #EAR baseline
+        # EAR 基线收集
         if self.EAR_BASELINE is None:
             ear = calc_ear_both(lm, w, h)
             if ear > 1e-6:
@@ -49,7 +49,7 @@ class BaselineCalibrator:
                 if len(self.baseline_ears) >= self.baseline_frames:
                     self.EAR_BASELINE = float(np.median(self.baseline_ears))
 
-        #Pose baseline
+        # 头部姿态基线收集
         if not self.POSE_BASELINE_READY:
             pose = pose_estimator.calc_pose_abs(lm, w, h)
             if pose is not None:
@@ -63,7 +63,7 @@ class BaselineCalibrator:
                         self.pitch0 = circular_mean_deg(self.pose_pitches)
                         self.POSE_BASELINE_READY = True
 
-        #Gaze baseline
+        # 视线方向基线收集
         if not self.GAZE_BASELINE_READY:
             g = calc_gaze_proxy_cv(frame, lm, w, h)
             if g is not None:

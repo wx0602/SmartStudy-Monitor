@@ -4,10 +4,10 @@ import cv2
 
 class SeatOccupancyDetector:
     """
-    上半身视角离席检测：
-    - 肩部中心偏移
-    - Pose 丢失
-    - 时间防抖
+    上半身视角离席检测:
+      肩部中心偏移
+      Pose 丢失
+      时间防抖
     """
 
     def __init__(self, config):

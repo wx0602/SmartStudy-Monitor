@@ -85,7 +85,7 @@ def run_webcam_demo():
             state = CALIBRATING
             force_zero_frames = 0
 
-        #WAIT_START
+        # 等待开始状态
         if state == WAIT_START:
             draw_button(disp_frame, start_btn, "START", enabled=True)
             cv2.putText(disp_frame, "Click START to calibrate",
@@ -97,7 +97,7 @@ def run_webcam_demo():
             cv2.imshow(win_name, disp_frame)
             continue
 
-        #CALIBRATING
+        # 校准状态
         if state == CALIBRATING:
             assert monitor is not None
             ok = monitor.calibrate(raw_frame)
@@ -135,7 +135,7 @@ def run_webcam_demo():
 
             continue
 
-        #RUNNING
+        # 运行状态
         if state == RUNNING:
             assert monitor is not None
             json_data = monitor.process(raw_frame)
@@ -157,7 +157,7 @@ def run_webcam_demo():
 
             x, y0, dy = 10, 30, 25
 
-            #EAR
+            # EAR值显示
             ear_ratio = data.get("ear")
             ear_state = data.get("blink_state", "no_face")
             ear_bad = (ear_state == "closed" or ear_state == "no_face")
@@ -165,20 +165,20 @@ def run_webcam_demo():
             cv2.putText(disp_frame, f"EAR(ratio): {ear_ratio}", (x, y0 + 0 * dy),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, ear_color, 2)
 
-            #Blink
+            # 眨眼状态显示
             blink = data.get("blink_state", "no_face")
             blink_bad = (blink == "closed" or blink == "no_face")
             blink_color = (0, 0, 255) if blink_bad else (0, 255, 0)
             cv2.putText(disp_frame, f"Blink: {blink}", (x, y0 + 1 * dy),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, blink_color, 2)
 
-            #Drowsy
+            # 疲劳状态显示
             drowsy = (monitor.eye_closed_time >= SLEEPY_TIME)
             drowsy_color = (0, 0, 255) if drowsy else (0, 255, 0)
             cv2.putText(disp_frame, f"Drowsy: {drowsy} ({monitor.eye_closed_time:.2f}s)", (x, y0 + 2 * dy),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, drowsy_color, 2)
 
-            # Yaw/Pitch
+            # Yaw/Pitch 显示
             if force_zero_frames > 0:
                 yaw_show = 0.0
                 pitch_show = 0.0
@@ -202,7 +202,7 @@ def run_webcam_demo():
             cv2.putText(disp_frame, f"Pitch: {pitch_show}  down:{look_down} up:{look_up}", (x, y0 + 4 * dy),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, pitch_color, 2)
 
-            # gaze
+            # 视线显示
             gx = data.get("gaze_x")
             gy = data.get("gaze_y")
             gaze_off = data.get("gaze_off", False)
@@ -210,7 +210,7 @@ def run_webcam_demo():
             cv2.putText(disp_frame, f"Gaze: off:{gaze_off}  x:{gx} y:{gy}", (x, y0 + 5 * dy),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, gaze_color, 2)
 
-            # Attention
+            # 注意力分数显示
             attn = data.get("attention_score", 0)
             attn_bad = (float(attn) < ATTN_BAD_THRESHOLD)
             attn_color = (0, 0, 255) if attn_bad else (0, 255, 0)

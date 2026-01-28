@@ -17,8 +17,7 @@ class BehaviorDetector:
 
     def process(self, results, frame=None):
         """
-        对单帧结果进行行为检测。
-        
+        对单帧结果进行行为检测
         Args:
             results: MediaPipe 或其他模块的前置检测结果
             frame: 当前视频帧
@@ -38,7 +37,7 @@ class BehaviorDetector:
 
     def process_json(self, results, frame=None):
         """
-        返回 JSON 字符串（方便调试 / 输出）。
+        返回 JSON 字符串
         """
         return json.dumps(
             self.process(results, frame=frame),

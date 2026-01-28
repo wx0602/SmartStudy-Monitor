@@ -18,8 +18,7 @@ def cfg_get(key: str, default):
     return _cfg[key] if key in _cfg else default
 
 
-#thresholds
-
+# thresholds
 EAR_CLOSED_RATIO = float(cfg_get("EAR_CLOSED_RATIO", 0.45))
 EAR_HALF_RATIO   = float(cfg_get("EAR_HALF_RATIO", 0.70))
 SLEEPY_TIME      = float(cfg_get("SLEEPY_TIME", 2.0))
@@ -54,7 +53,7 @@ W_UP     = float(cfg_get("W_UP", 0.05))
 W_NOFACE = float(cfg_get("W_NOFACE", 0.25))
 W_UNSTB  = float(cfg_get("W_UNSTB", 0.05))
 
-#gaze proxy阈值与权重
+# gaze proxy阈值与权重
 GAZE_X_THRESHOLD = float(cfg_get("GAZE_X_THRESHOLD", 0.35))
 GAZE_Y_THRESHOLD = float(cfg_get("GAZE_Y_THRESHOLD", 0.40))
 GAZE_HOLD_TIME   = float(cfg_get("GAZE_HOLD_TIME", 0.35))

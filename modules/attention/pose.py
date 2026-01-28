@@ -10,19 +10,19 @@ from .geometry import wrap_angle
 class PoseEstimator:
     """
     更“不断帧”的姿态估计：
-    - 10点固定3D模型（不会出现角度被压小的问题）
-    - 先 EPNP 给初值，再 ITERATIVE refine；有 prev 就用 prev 做初值
-    - 只用重投影误差做过滤（比 RANSAC 更不容易全军覆没）
+      10点固定3D模型
+      先 EPNP 给初值, 再 ITERATIVE refine, 有 prev 就用 prev 做初值
+      只用重投影误差做过滤
     """
 
     def __init__(self):
         self.prev_rvec = None
         self.prev_tvec = None
 
-        # 稳定的10点（不含嘴角，减少表情干扰）
+        # 稳定的10点
         self.idxs = [1, 168, 10, 152, 33, 133, 362, 263, 234, 454]
 
-        # 与 idxs 对应的固定 3D 模型点（经验平均脸模型）
+        # 与 idxs 对应的固定 3D 模型点
         self.model_points = np.array([
             [0.0,    0.0,    0.0],    # 1 nose tip
             [0.0,   22.0,  -18.0],    # 168 nose bridge
@@ -37,7 +37,7 @@ class PoseEstimator:
         ], dtype=np.float64)
 
     def calc_pose_abs(self, landmarks, img_w, img_h):
-        # 质量门控：脸太远就不算
+        # 质量门控
         pL = np.array([landmarks[33].x * img_w,  landmarks[33].y * img_h], dtype=np.float64)
         pR = np.array([landmarks[263].x * img_w, landmarks[263].y * img_h], dtype=np.float64)
         eye_dist = float(np.linalg.norm(pR - pL))
@@ -95,7 +95,7 @@ class PoseEstimator:
         self.prev_rvec = rvec
         self.prev_tvec = tvec
 
-        # 欧拉角（用 atan2，避免 pitch 掉到 ±180 分支）
+        # 欧拉角
         R, _ = cv2.Rodrigues(rvec)
         yaw = np.degrees(np.arctan2(R[0, 2], R[2, 2]))
         pitch = np.degrees(np.arctan2(-R[1, 2], np.sqrt(R[1, 0] ** 2 + R[1, 1] ** 2)))

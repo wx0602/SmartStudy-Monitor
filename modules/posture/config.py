@@ -2,8 +2,6 @@ import os
 import yaml
 
 # 定位 thresholds.yaml 的位置
-# 项目根目录/config/thresholds.yaml 
-# 项目根目录/modules/posture/config.py
 _CUR_DIR = os.path.dirname(__file__) 
 _CFG_PATH = os.path.abspath(os.path.join(_CUR_DIR, "../../config/thresholds.yaml"))
 
@@ -25,26 +23,22 @@ def cfg_get(key: str, default):
     """从字典获取配置，若无则返回默认值"""
     return _cfg[key] if key in _cfg else default
 
-# ==========================================
-# 你的姿态检测专项阈值 (常量化)
-# ==========================================
-
-# A. 肩膀倾斜
+# 肩膀倾斜
 SHOULDER_TILT_THRESH = float(cfg_get("shoulder_tilt", 10.0))
 
-# B. 头部前伸
+# 头部前伸
 HEAD_FORWARD_THRESH  = float(cfg_get("head_forward", 2.0))
 
-# C. 驼背程度
+# 驼背程度
 HUNCHBACK_THRESH     = float(cfg_get("hunchback", 0.25))
 
-# D. 颈部侧倾
+# 颈部侧倾
 NECK_TILT_THRESH     = float(cfg_get("neck_tilt", 15.0))
 
-# E. 屏幕距离比例
+# 屏幕距离比例
 SCREEN_RATIO_THRESH  = float(cfg_get("screen_distance", 0.5))
 
-# F. 躯干偏移比例
+# 躯干偏移比例
 LEAN_DEGREE_THRESH   = float(cfg_get("lean", 0.15))
 
 

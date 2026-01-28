@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
 
-# FaceMesh eye landmarks (stable)
-# Left eye: corners (inner=133, outer=33), lids (top=159, bottom=145)
-# Right eye: corners (inner=362, outer=263), lids (top=386, bottom=374)
+# FaceMesh eye landmarks
+# Left eye: corners, lids
+# Right eye: corners, lids
 L_CORNER_IN, L_CORNER_OUT = 133, 33
 R_CORNER_IN, R_CORNER_OUT = 362, 263
 L_TOP, L_BOTTOM = 159, 145
@@ -38,8 +38,8 @@ def _clip_bbox(x1, y1, x2, y2, w, h):
 
 def _dark_centroid(gray_roi, mask_roi, dark_percentile=15.0):
     """
-    在眼睛 mask 内找“暗区域”质心（近似瞳孔/虹膜暗区）。
-    返回 (cx, cy, quality)，坐标在 ROI 坐标系。
+    在眼睛 mask 内找“暗区域”质心
+    返回瞳孔中心位置和质量，坐标在 ROI 坐标系内
     """
     # 将 mask 外设为 255，避免被当成暗区域
     work = gray_roi.copy()
@@ -62,7 +62,7 @@ def _dark_centroid(gray_roi, mask_roi, dark_percentile=15.0):
     if mask_area <= 0:
         return None
 
-    # 质量：暗区占比（太小=找不到，太大=阈值/反光导致整块都黑）
+    # 质量：暗区占比
     ratio = area / float(mask_area)
     quality = 0.0
     if 0.01 <= ratio <= 0.35:
@@ -115,7 +115,7 @@ def _one_eye_gaze(frame_bgr, lm, img_w, img_h, poly_ids, inner_id, outer_id, top
     top = _pt(lm, top_id, img_w, img_h) - np.array([x1, y1], dtype=np.float32)
     bottom = _pt(lm, bottom_id, img_w, img_h) - np.array([x1, y1], dtype=np.float32)
 
-    # 防止参考点反了（偶发）
+    # 防止参考点反了
     x_min = float(min(inner[0], outer[0]))
     x_max = float(max(inner[0], outer[0]))
     y_min = float(min(top[1], bottom[1]))
@@ -138,9 +138,9 @@ def _one_eye_gaze(frame_bgr, lm, img_w, img_h, poly_ids, inner_id, outer_id, top
 def calc_gaze_proxy_cv(frame_bgr, lm, img_w, img_h):
     """
     返回 (gx, gy, quality)
-    - gx: 左右注视偏移（0=居中，负=偏左，正=偏右）
-    - gy: 上下注视偏移（0=居中，负=偏上，正=偏下）
-    - quality: 0~1（越大越可信）
+      gx: 左右注视偏移
+      gy: 上下注视偏移
+      quality: 0~1
     """
     left = _one_eye_gaze(frame_bgr, lm, img_w, img_h,
                         LEFT_EYE_POLY, L_CORNER_IN, L_CORNER_OUT, L_TOP, L_BOTTOM)

@@ -11,7 +11,7 @@ class HandBadHabitsDetector:
         self.face_threshold = hand_cfg["face_distance"]
         self.head_threshold = hand_cfg["head_distance"]
 
-        # 时间阈值（秒）
+        # 时间阈值
         self.touch_duration_threshold = hand_cfg["touch_time_threshold"]
         self.head_duration_threshold = hand_cfg["head_time_threshold"]
 
@@ -161,7 +161,7 @@ class HandBadHabitsDetector:
             if k > 0:
                 touching_face = (sum(1 for v in recent if v) / float(k)) >= self.face_required_ratio
 
-        # 摸脸 / 托腮（托腮即时触发，频繁摸脸需持续）
+        # 托腮即时触发，频繁摸脸需持续
         if touching_face:
             output["托腮"] = True
 
@@ -179,7 +179,7 @@ class HandBadHabitsDetector:
                 self.touch_start_time = None
                 self.last_face_contact_time = None
 
-        # 扶额 / 撑头（扶额即时触发，频繁撑头需持续）
+        # 扶额即时触发，频繁撑头需持续
         if touching_head:
             output["扶额"] = True
 

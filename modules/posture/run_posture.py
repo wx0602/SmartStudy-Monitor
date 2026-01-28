@@ -3,7 +3,7 @@ import time
 import json
 from pathlib import Path
 
-# === 1. 设置路径 ===
+# 设置路径
 print("[Debug] 正在设置环境路径...")
 FILE_PATH = Path(__file__).resolve()
 ROOT_DIR = FILE_PATH.parents[2]
@@ -11,18 +11,17 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.append(str(ROOT_DIR))
 print(f"[Debug] 项目根目录: {ROOT_DIR}")
 
-# === 2. 导入与诊断 ===
+# 导入与诊断
 print("[Debug] 正在导入依赖库...")
 try:
     import cv2
     import mediapipe as mp
-    # --- 关键诊断信息 ---
+    # 关键诊断信息
     print(f"[Debug] MediaPipe 安装路径: {mp.__file__}")
     if not hasattr(mp, 'solutions'):
         print("[Fatal Error] MediaPipe 库损坏：找不到 solutions 属性！")
         print(">> 请尝试运行: pip install mediapipe==0.10.9")
         sys.exit(1)
-    # --------------------
     from modules.posture.detector import PostureDetector
     print("[Debug] 所有模块导入成功！")
 except ImportError as e:
@@ -42,11 +41,11 @@ def main():
         traceback.print_exc()
         return
 
-    # === 3. 打开摄像头 ===
+    # 打开摄像头
     camera_id = 0
     print(f"[Debug] 正在尝试打开摄像头 ID: {camera_id} ...")
     cap = cv2.VideoCapture(camera_id)
-    time.sleep(1.0) # 等待预热
+    time.sleep(1.0)
 
     if not cap.isOpened():
         print(f"[Error] 无法打开摄像头 {camera_id}")

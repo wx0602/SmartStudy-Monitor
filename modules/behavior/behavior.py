@@ -12,7 +12,7 @@ import mediapipe as mp
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-# 1. 项目根目录定位
+# 项目根目录定位
 THIS_FILE = Path(__file__).resolve()
 BASE_DIR = THIS_FILE.parents[2]
 
@@ -22,18 +22,17 @@ if not (BASE_DIR / "config").exists():
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
-# 2. 模块导入
 from modules.behavior.behavior_detector import BehaviorDetector
 
-# 3. 配置路径
+# 配置路径
 CONFIG_DIR = BASE_DIR / "config"
 SETTINGS_PATH = CONFIG_DIR / "settings.json"
 THRESHOLDS_PATH = CONFIG_DIR / "thresholds.yaml"
 
-# 4. 日志路径
+# 日志路径
 OUTPUT_PATH = BASE_DIR / "behavior_results.json"
 
-# 5. MediaPipe 结果封装
+# MediaPipe 结果封装
 class Results:
     def __init__(self, hands_results, pose_results):
         self.multi_hand_landmarks = (
@@ -41,11 +40,11 @@ class Results:
         )
         self.pose_landmarks = pose_results.pose_landmarks if pose_results else None
 
-# 6. 字体
+# 字体
 FONT_PATH = BASE_DIR / "assets" / "fonts" / "msyh.ttc"
 FONT = ImageFont.truetype(str(FONT_PATH), 18)
 
-# 7. 行为状态显示（左上角）
+# 行为状态显示
 def draw_behavior_status(frame, behavior_result, origin=(10, 20)):
     img_pil = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     draw = ImageDraw.Draw(img_pil)
@@ -71,7 +70,7 @@ def draw_behavior_status(frame, behavior_result, origin=(10, 20)):
 
     return cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
 
-# 8. 画肩部中心
+# 画肩部中心
 def draw_shoulder_center(frame, results):
     if not results.pose_landmarks:
         return frame
@@ -97,7 +96,6 @@ def draw_shoulder_center(frame, results):
 
     return frame
 
-# 9. 主函数
 def main():
     with SETTINGS_PATH.open("r", encoding="utf-8") as f:
         settings = json.load(f)
@@ -173,6 +171,5 @@ def main():
     cap.release()
     cv2.destroyAllWindows()
 
-# 10. 入口
 if __name__ == "__main__":
     main()
