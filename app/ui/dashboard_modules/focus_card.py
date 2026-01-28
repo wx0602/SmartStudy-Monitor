@@ -21,7 +21,7 @@ class FocusCard(QFrame):
         title.setObjectName("Title")
         layout.addWidget(title)
 
-        self.val_eye = QLabel("眼睛: 睁开")
+        self.val_eye = QLabel("眼睛: 初始化...")
         self.val_eye.setObjectName("SubTitle")
         layout.addWidget(self.val_eye)
 
@@ -51,8 +51,12 @@ class FocusCard(QFrame):
         _refresh_style(self.score_bar)
 
     def update_data(self, b_data):
+        if not b_data:
+            return
+
         # A. 疲劳值
-        raw_perclos = float(b_data.get("perclos", 0.0))
+        # 如果获取到 None，用 or 0.0 强制转为 0.0
+        raw_perclos = float(b_data.get("perclos") or 0.0)
         perclos_val = int(raw_perclos * 100)
         self.perclos_bar.setValue(min(perclos_val, 100))
         self.perclos_bar.setFormat(f"疲劳值: {raw_perclos:.2f}")
@@ -62,14 +66,30 @@ class FocusCard(QFrame):
         _refresh_style(self.perclos_bar)
 
         # B. 专注分
-        score = int(b_data.get("attention_score", 100))
+        # 如果获取到 None，用 or 100 默认满分
+        score = int(b_data.get("attention_score") or 100)
         self.score_bar.setValue(score)
         self.score_bar.setProperty("barLevel", "bad" if score < 60 else "good")
         _refresh_style(self.score_bar)
 
-        # C. 文字
-        eye_cn = "睁开" if b_data.get("blink_state", "open") == "open" else "闭合"
+        # C. 眼睛状态
+        state = b_data.get("blink_state", "no_face")
+        if state == "open":
+            eye_cn = "睁开"
+        elif state == "closed":
+            eye_cn = "闭合"
+        elif state == "half":
+            eye_cn = "半眯"
+        else:
+            eye_cn = "检测中"
+        
         self.val_eye.setText(f"眼睛: {eye_cn}")
 
-        dis = float(b_data.get("distraction_rate", 0.0))
-        self.val_distraction.setText(f"分心率: {int(dis * 100)}%")
+        # D. 分心率 
+        r_away = float(b_data.get("away_ratio") or 0.0)
+        r_down = float(b_data.get("down_ratio") or 0.0)
+        r_gaze = float(b_data.get("gaze_ratio") or 0.0)
+        
+        # 取最大值显示
+        max_dis = max(r_away, r_down, r_gaze)
+        self.val_distraction.setText(f"分心率: {int(max_dis * 100)}%")
