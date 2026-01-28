@@ -25,8 +25,8 @@ class SettingsDialog(QDialog):
 
         # 确认/取消按钮
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        buttons.accepted.connect(self.accept) # 点击确定 -> 触发 accept()
-        buttons.rejected.connect(self.reject) # 点击取消 -> 触发 reject()
+        buttons.accepted.connect(self.accept) 
+        buttons.rejected.connect(self.reject) 
         layout.addRow(buttons)
         
         # 保存一份当前设置的副本，防止修改被取消

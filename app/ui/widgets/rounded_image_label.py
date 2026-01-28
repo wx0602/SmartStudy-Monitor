@@ -2,19 +2,18 @@ from PyQt5.QtWidgets import QLabel
 from PyQt5.QtCore import Qt, QRectF
 from PyQt5.QtGui import QPixmap, QPainter, QPainterPath
 
-
+#把显示的 pixmap 裁成圆角，为避免冲突选择在 paintEvent 内裁剪绘制
 class RoundedImageLabel(QLabel):
-    """把显示的 pixmap 裁成圆角（真正对画面生效）- 安全版：在 paintEvent 内裁剪绘制"""
+
     def __init__(self, radius: int = 18, parent=None):
         super().__init__(parent)
         self._radius = int(radius)
         self._raw_pixmap = None
 
         self.setAlignment(Qt.AlignCenter)
-        self.setScaledContents(False)  # 我们自己缩放裁剪
+        self.setScaledContents(False)  # 缩放裁剪
         self.setAttribute(Qt.WA_TranslucentBackground, True)
 
-        # ✅ 关键：避免 Qt 认为这是不透明控件而走一些优化路径
         self.setAttribute(Qt.WA_OpaquePaintEvent, False)
 
     def setRadius(self, r: int):
@@ -22,7 +21,7 @@ class RoundedImageLabel(QLabel):
         self.update()
 
     def setPixmap(self, pm: QPixmap):
-        # ✅ 只缓存原始图，不在这里做 QPainter + super().setPixmap(out)
+        # 只缓存原始图，不在这里做 QPainter + super().setPixmap(out)
         self._raw_pixmap = pm
         self.update()
 
@@ -31,7 +30,6 @@ class RoundedImageLabel(QLabel):
         self.update()
 
     def paintEvent(self, event):
-        # ✅ 不调用 QLabel.paintEvent，避免它内部再画一次 pixmap 导致重入/冲突
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing, True)
         p.setRenderHint(QPainter.SmoothPixmapTransform, True)
@@ -44,7 +42,7 @@ class RoundedImageLabel(QLabel):
         p.setClipPath(path)
 
         if self._raw_pixmap and not self._raw_pixmap.isNull():
-            # cover：等比放大填充
+            # 等比放大填充
             scaled = self._raw_pixmap.scaled(
                 self.size(),
                 Qt.KeepAspectRatioByExpanding,

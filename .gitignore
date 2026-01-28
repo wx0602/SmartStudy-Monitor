@@ -4,7 +4,6 @@ venv/
 env/
 
 # 编译文件
-__pycache__/
 *.pyc
 
 # 项目运行生成的临时日志
@@ -16,3 +15,9 @@ monitor.log
 # IDE 设置
 .vscode/
 .idea/
+
+dist/
+build/
+*.spec
+*.exe
+__pycache__/

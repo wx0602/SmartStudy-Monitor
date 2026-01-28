@@ -1,7 +1,7 @@
 # app/ui/bubble.py
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import (
-    Qt, QRect, QPoint,
+    Qt, QRect, QPoint, QRectF,
     QPropertyAnimation, QEasingCurve,
     QSequentialAnimationGroup, QPauseAnimation,
     pyqtSignal, pyqtProperty
@@ -9,16 +9,14 @@ from PyQt5.QtCore import (
 from PyQt5.QtGui import (
     QColor, QPainter, QPainterPath, QFont, QFontDatabase
 )
-from PyQt5.QtCore import QRectF
 
-
+#本文件写了两个页面，分别是亮色和暗色，两个写法类似
 class ToastBubble(QWidget):
     """
-    Type1（轻度）：中心淡入 -> 停留 -> 淡出（不移动、不缩放、不闪）
     - light：半透明浅蓝
     - dark ：半透明深蓝
-    ✅ 不使用任何 QGraphicsEffect（避免 QPainter 冲突）
-    ✅ 可重复触发：show_toast 会强制 stop + 重播
+    为了避免与 QPainter 冲突，本部分不使用任何 QGraphicsEffect
+    支持重复触发 show_toast ，触发后会强制停止当前动画并重播
     """
     finished = pyqtSignal()
 
@@ -28,7 +26,7 @@ class ToastBubble(QWidget):
         self._theme = "light"
         self._w, self._h = 380, 76
         self._radius = 999  # 椭圆
-        self._alpha = 0.0   # 0~1 自己控制透明度
+        self._alpha = 0.0   # 透明度
         self._text = ""
 
         self.setFixedSize(self._w, self._h)
@@ -40,7 +38,7 @@ class ToastBubble(QWidget):
 
         self.hide()
 
-    # -------- alpha property (for animation) --------
+    # 透明度属性
     def getAlpha(self) -> float:
         return float(self._alpha)
 
@@ -50,7 +48,7 @@ class ToastBubble(QWidget):
 
     alpha = pyqtProperty(float, fget=getAlpha, fset=setAlpha)
 
-    # -------- font (prettier) --------
+    # 字体设置
     def _pick_font(self, pt: int, bold: bool = True) -> QFont:
         candidates = [
             "Microsoft YaHei UI",
@@ -68,28 +66,28 @@ class ToastBubble(QWidget):
         f.setHintingPreference(QFont.PreferFullHinting)
         return f
 
-    # -------- theme / palette --------
+    # 主题 / 调色板
     def set_theme(self, theme: str):
         self._theme = theme or "light"
         self.update()
 
     def _palette(self):
-        # 低饱和：浅蓝 / 深蓝
+        # 低饱和度配色：浅蓝 / 深蓝
         if self._theme == "dark":
             return dict(
-                bg=QColor(18, 38, 78, 205),     # 深蓝玻璃
+                bg=QColor(18, 38, 78, 205),     # 深蓝玻璃质感
                 bd=QColor(150, 205, 255, 70),
                 fg=QColor(255, 255, 255, 242),
                 shadow=QColor(0, 0, 0, 140),
             )
         return dict(
-            bg=QColor(220, 244, 255, 230),    # 浅蓝玻璃
+            bg=QColor(220, 244, 255, 230),    # 浅蓝玻璃质感
             bd=QColor(120, 180, 255, 150),
             fg=QColor(18, 32, 50, 240),
             shadow=QColor(0, 0, 0, 90),
         )
 
-    # -------- geometry --------
+    # 布局
     def _parent_rect(self):
         p = self.parentWidget()
         return p.rect() if p else QRect(0, 0, 800, 600)
@@ -100,9 +98,9 @@ class ToastBubble(QWidget):
         y = (pr.height() - self._h) // 2
         return QRect(max(0, x), max(0, y), self._w, self._h)
 
-    # -------- API --------
+    # -对外接口 
     def show_toast(self, text: str, duration_ms: int = 1200):
-        # ✅ 可重复触发：正在播就先停掉并重置
+        # 可重复触发：若正在播放动画则先停止并重置
         if self._seq.state() != 0:
             self._seq.stop()
 
@@ -137,7 +135,7 @@ class ToastBubble(QWidget):
         self.hide()
         self.finished.emit()
 
-    # -------- paint --------
+    # 绘图事件
     def paintEvent(self, event):
         if self._alpha <= 0.001:
             return
@@ -156,7 +154,7 @@ class ToastBubble(QWidget):
         rect = QRectF(self.rect())
         body_rect = rect.adjusted(1.0, 1.0, -1.0, -1.0)
 
-        # ✅ 伪阴影（多层、下偏移，避免 QGraphicsEffect）
+        # 伪阴影绘制，多层叠加、向下偏移
         shadow = pal["shadow"]
         for i in range(10):
             a = (10 - i) / 10.0
@@ -167,23 +165,24 @@ class ToastBubble(QWidget):
             p.setBrush(with_alpha(shadow, self._alpha * 0.10 * a))
             p.drawPath(path)
 
-        # ✅ 主体
+        # 绘制主体
         path = QPainterPath()
         path.addRoundedRect(body_rect, self._radius, self._radius)
         p.setBrush(with_alpha(pal["bg"], self._alpha))
         p.setPen(with_alpha(pal["bd"], self._alpha))
         p.drawPath(path)
 
-        # ✅ 文本：更漂亮（字体 + 微阴影）
+        # 绘制文本，做了微阴影处理
         text_rect = rect.adjusted(26, 12, -26, -12)
         font = self._pick_font(pt=15, bold=True)
         p.setFont(font)
 
-        # 微阴影（提升质感）
+        # 绘制文字微阴影
         shadow_text = QColor(pal["fg"])
         shadow_text.setAlpha(int(45 * self._alpha))
         p.setPen(shadow_text)
-        p.drawText(text_rect.translated(0, 1), Qt.AlignCenter | Qt.TextWordWrap, self._text)
+        p.drawText(text_rect.translated(0, 1),
+                   Qt.AlignCenter | Qt.TextWordWrap, self._text)
 
         p.setPen(with_alpha(pal["fg"], self._alpha))
         p.drawText(text_rect, Qt.AlignCenter | Qt.TextWordWrap, self._text)
@@ -193,16 +192,17 @@ class ToastBubble(QWidget):
 
 class ModalBubble(QWidget):
     """
-    Type2（重度）：顶层弹窗（Qt.Tool），必须手动关闭，不自动消失
-    - show_at(text, global_rect): 居中到 video_frame 的全局矩形
-    ✅ 不使用任何 QGraphicsEffect（避免 QPainter 冲突）
-    ✅ 可重复触发：show_at 每次都会淡入到 1
+    类型2（重度）：顶层模态弹窗（Qt.Tool），必须手动关闭，不会自动消失
+    - show_at(text, global_rect): 居中显示在 video_frame 的全局矩形范围内
+    不使用任何 QGraphicsEffect（避免与 QPainter 冲突）
+    支持重复触发：每次调用 show_at 都会重新淡入到不透明状态
     """
     closed = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(None)
-        self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint |
+                            Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
 
         self._theme = "light"
@@ -222,7 +222,7 @@ class ModalBubble(QWidget):
 
         self.hide()
 
-    # -------- alpha property --------
+    # 透明度
     def getAlpha(self) -> float:
         return float(self._alpha)
 
@@ -232,7 +232,7 @@ class ModalBubble(QWidget):
 
     alpha = pyqtProperty(float, fget=getAlpha, fset=setAlpha)
 
-    # -------- font --------
+    # 字体设置
     def _pick_font(self, pt: int, bold: bool = True) -> QFont:
         candidates = [
             "Microsoft YaHei UI",
@@ -250,16 +250,16 @@ class ModalBubble(QWidget):
         f.setHintingPreference(QFont.PreferFullHinting)
         return f
 
-    # -------- theme / palette --------
+    # 主题 / 调色板
     def set_theme(self, theme: str):
         self._theme = theme or "light"
         self.update()
 
     def _palette(self):
-        # 低饱和：浅红 / 深红
+        # 低饱和度配色：浅红 / 深红
         if self._theme == "dark":
             return dict(
-                bg=QColor(92, 24, 36, 215),       # 深红玻璃
+                bg=QColor(92, 24, 36, 215),       # 深红玻璃质感
                 bd=QColor(255, 150, 175, 90),
                 fg=QColor(255, 255, 255, 242),
                 shadow=QColor(0, 0, 0, 170),
@@ -267,7 +267,7 @@ class ModalBubble(QWidget):
                 close_fg=QColor(255, 255, 255, 235),
             )
         return dict(
-            bg=QColor(255, 236, 242, 235),      # 浅红玻璃
+            bg=QColor(255, 236, 242, 235),      # 浅红玻璃质感
             bd=QColor(235, 130, 150, 160),
             fg=QColor(45, 18, 26, 240),
             shadow=QColor(0, 0, 0, 115),
@@ -275,7 +275,7 @@ class ModalBubble(QWidget):
             close_fg=QColor(45, 18, 26, 220),
         )
 
-    # -------- API --------
+    # 对外接口
     def show_at(self, text: str, target_global_rect: QRect):
         self._text = text
         self._closing = False
@@ -292,11 +292,11 @@ class ModalBubble(QWidget):
             self.raise_()
             self.activateWindow()
         else:
-            # 可见时更新位置/文本，也要置顶
+            # 可见时更新位置/文本
             self.raise_()
             self.activateWindow()
 
-        # 每次 show_at 都保证淡入到 1（可重复触发不会“只显示一次”）
+        # 每次调用 show_at 都保证淡入到1，防止重复触发时出现“只显示一次”的问题
         if self._anim_out and self._anim_out.state() != 0:
             self._anim_out.stop()
 
@@ -332,7 +332,7 @@ class ModalBubble(QWidget):
         self._anim_out.finished.connect(_after)
         self._anim_out.start()
 
-    # -------- interaction --------
+    # 交互事件
     def mousePressEvent(self, e):
         if e.button() == Qt.LeftButton and self._close_rect.contains(e.pos()):
             self.close_modal()
@@ -347,7 +347,7 @@ class ModalBubble(QWidget):
             self.setCursor(Qt.ArrowCursor)
         super().mouseMoveEvent(e)
 
-    # -------- paint --------
+    # 绘图事件
     def paintEvent(self, event):
         if self._alpha <= 0.001:
             return
@@ -366,7 +366,7 @@ class ModalBubble(QWidget):
         rect = QRectF(self.rect())
         body_rect = rect.adjusted(1.0, 1.0, -1.0, -1.0)
 
-        # 伪阴影（多层）
+        # 伪阴影
         shadow = pal["shadow"]
         for i in range(12):
             a = (12 - i) / 12.0
@@ -377,14 +377,14 @@ class ModalBubble(QWidget):
             p.setBrush(with_alpha(shadow, self._alpha * 0.10 * a))
             p.drawPath(path)
 
-        # 主体
+        # 绘制主体
         path = QPainterPath()
         path.addRoundedRect(body_rect, self._radius, self._radius)
         p.setBrush(with_alpha(pal["bg"], self._alpha))
         p.setPen(with_alpha(pal["bd"], self._alpha))
         p.drawPath(path)
 
-        # 关闭按钮（手绘）
+        # 绘制关闭按钮
         cr = QRectF(self._close_rect)
         btn_path = QPainterPath()
         btn_path.addRoundedRect(cr, 10, 10)
@@ -396,14 +396,15 @@ class ModalBubble(QWidget):
         p.setFont(self._pick_font(pt=12, bold=True))
         p.drawText(cr, Qt.AlignCenter, "✕")
 
-        # 文本（更权威 + 微阴影）
+        # 绘制文本
         text_rect = rect.adjusted(32, 46, -32, -36)
         p.setFont(self._pick_font(pt=18, bold=True))
 
         shadow_text = QColor(pal["fg"])
         shadow_text.setAlpha(int(55 * self._alpha))
         p.setPen(shadow_text)
-        p.drawText(text_rect.translated(0, 1), Qt.AlignCenter | Qt.TextWordWrap, self._text)
+        p.drawText(text_rect.translated(0, 1),
+                   Qt.AlignCenter | Qt.TextWordWrap, self._text)
 
         p.setPen(with_alpha(pal["fg"], self._alpha))
         p.drawText(text_rect, Qt.AlignCenter | Qt.TextWordWrap, self._text)

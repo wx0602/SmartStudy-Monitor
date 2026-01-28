@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QFrame
 from PyQt5.QtGui import QPainter, QPixmap, QPainterPath
 from PyQt5.QtCore import Qt, QRectF
 
+# 横向部分背景
 class SidebarBackgroundFrame(QFrame):
     def __init__(self, parent=None, radius=14):
         super().__init__(parent)
@@ -23,7 +24,7 @@ class SidebarBackgroundFrame(QFrame):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
 
-        # 圆角裁剪（关键修复）
+        # 圆角裁剪
         path = QPainterPath()
         path.addRoundedRect(QRectF(self.rect()), self._radius, self._radius)
         p.setClipPath(path)
