@@ -127,12 +127,9 @@ class AIWorker(QThread):
             # 1. 姿态检测
             self.module_a = PostureDetector() if PostureDetector else None
 
-            # 2. 注意力检测 (注入免校准参数)
+            # 2. 注意力检测
             self.module_b = AttentionMonitor(fps=30) if AttentionMonitor else None
-            if self.module_b:
-                self.module_b.calibrator.EAR_BASELINE = 0.25
-                self.module_b.calibrator.POSE_BASELINE_READY = True
-                self.module_b.calibrator.GAZE_BASELINE_READY = True
+            # 让 AttentionMonitor 自己在运行时去跑 calibrate() 逻辑
 
             # 3. 行为检测
             config_data = self.config_mgr.data if self.config_mgr else {}

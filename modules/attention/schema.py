@@ -19,4 +19,3 @@ def make_base_output(score_ema: float) -> dict:
         "gaze_ratio": None,
         "unstable": None,
     }
-
